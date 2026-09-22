@@ -363,6 +363,29 @@ export function colorSorterShape(p: ColorSorterSymbolPreset): ICEGroup {
   return group;
 }
 
+/**
+ * 包装秤：称重斗 + 斗底锥 + 下料嘴 + 夹袋弧线。
+ */
+export function packingScaleShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  // 称重斗
+  addRect(group, (w - 48) / 2, 0, 48, 22);
+  addClosed(group, [
+    [(w - 48) / 2, 22],
+    [w / 2, 44],
+    [(w + 48) / 2, 22],
+  ]);
+  // 下料嘴 + 夹袋弧线
+  addRect(group, w / 2 - 6, 44, 12, 12);
+  addLine(group, [
+    [w / 2 - 14, h - 8],
+    [w / 2, h - 18],
+    [w / 2 + 14, h - 8],
+  ]);
+  return group;
+}
+
 export function isColorSorterSymbolKind(kind: string): kind is ColorSorterSymbolKind {
   return (COLOR_SORTER_SYMBOL_KINDS as readonly string[]).indexOf(kind) !== -1;
 }
