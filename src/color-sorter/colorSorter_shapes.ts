@@ -473,6 +473,65 @@ export function airFilterShape(p: ColorSorterSymbolPreset): ICEGroup {
   return group;
 }
 
+/**
+ * 布袋除尘器：箱体 + 竖滤袋线 + 倒锥灰斗。
+ */
+export function dustCollectorShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  const bodyH = h * 0.6;
+  addRect(group, 0, 0, w, bodyH);
+  // 4 条竖滤袋线
+  for (let i = 0; i < 4; i++) {
+    const cx = 14 + i * ((w - 28) / 3);
+    addLine(group, [
+      [cx, 4],
+      [cx, bodyH - 4],
+    ]);
+  }
+  // 倒锥灰斗
+  addClosed(group, [
+    [0, bodyH],
+    [w / 2, h],
+    [w, bodyH],
+  ]);
+  return group;
+}
+
+/**
+ * 离心风机：蜗壳圆 + 切线出口。
+ */
+export function fanShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  const r = Math.min(w / 2 - 8, h / 2 - 8);
+  const cx = w / 2 - 4;
+  const cy = h / 2;
+  addCircle(group, cx, cy, r);
+  // 涡壳切线出口
+  addRect(group, cx + r - 4, cy - 12, 12, 24);
+  return group;
+}
+
+/**
+ * 电控柜：柜体 + 门缝中线 + 显示屏 + 指示灯。
+ */
+export function controlCabinetShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  addRect(group, 0, 0, w, h);
+  // 门缝中线
+  addLine(group, [
+    [w / 2, 0],
+    [w / 2, h - 12],
+  ]);
+  // 显示屏
+  addRect(group, 10, 8, 18, 12);
+  // 指示灯
+  addCircle(group, w - 12, 14, 2);
+  return group;
+}
+
 export function isColorSorterSymbolKind(kind: string): kind is ColorSorterSymbolKind {
   return (COLOR_SORTER_SYMBOL_KINDS as readonly string[]).indexOf(kind) !== -1;
 }
