@@ -13,6 +13,8 @@ import {
   bufferBinShape,
   productBinShape,
   rejectBinShape,
+  elevatorShape,
+  vibFeederShape,
 } from '../../src/color-sorter/colorSorter_shapes';
 
 describe('color-sorter / 仓斗类符号', () => {
@@ -34,5 +36,22 @@ describe('color-sorter / 仓斗类符号', () => {
     expect(COLOR_SORTER_SYMBOL_PRESETS.bufferBin.shape).toBe('tank');
     expect(COLOR_SORTER_SYMBOL_PRESETS.productBin.shape).toBe('tank');
     expect(COLOR_SORTER_SYMBOL_PRESETS.rejectBin.shape).toBe('tank');
+  });
+});
+
+describe('color-sorter / 提升机 + 喂料器', () => {
+  test('elevator shape 存在且返回 ICEGroup', () => {
+    expect(typeof elevatorShape).toBe('function');
+    expect(COLOR_SORTER_SYMBOL_PRESETS.elevator.shape).toBe('device');
+    const group = elevatorShape(COLOR_SORTER_SYMBOL_PRESETS.elevator);
+    expect(group).toBeInstanceOf(ICEGroup);
+    expect(group.childNodes.length).toBeGreaterThan(0);
+  });
+  test('vibFeeder shape 存在且返回 ICEGroup', () => {
+    expect(typeof vibFeederShape).toBe('function');
+    expect(COLOR_SORTER_SYMBOL_PRESETS.vibFeeder.shape).toBe('device');
+    const group = vibFeederShape(COLOR_SORTER_SYMBOL_PRESETS.vibFeeder);
+    expect(group).toBeInstanceOf(ICEGroup);
+    expect(group.childNodes.length).toBeGreaterThan(0);
   });
 });

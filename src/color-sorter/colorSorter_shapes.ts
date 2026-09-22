@@ -248,6 +248,69 @@ export function rejectBinShape(p: ColorSorterSymbolPreset): ICEGroup {
   return binShape(p.width, p.height, false);
 }
 
+/**
+ * 斗式提升机：竖机筒 + 畚斗带（双虚线表示）+ 机头 + 出料弯。
+ */
+export function elevatorShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  // 机筒
+  addRect(group, (w - 22) / 2, 14, 22, h - 24);
+  // 畚斗带（两条虚线）
+  addLine(
+    group,
+    [
+      [(w - 22) / 2 + 6, 18],
+      [(w - 22) / 2 + 6, h - 12],
+    ],
+    true
+  );
+  addLine(
+    group,
+    [
+      [(w - 22) / 2 + 16, 18],
+      [(w - 22) / 2 + 16, h - 12],
+    ],
+    true
+  );
+  // 机头
+  addRect(group, (w - 30) / 2, 2, 30, 14);
+  // 出料弯
+  addLine(group, [
+    [(w + 22) / 2, 6],
+    [w - 4, 6],
+    [w - 4, 20],
+    [w + 4, 20],
+  ]);
+  return group;
+}
+
+/**
+ * 振动喂料器：料槽（梯形）+ 振动波线 + 下方虚线表示下料。
+ */
+export function vibFeederShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  // 料槽梯形
+  addClosed(group, [
+    [0, 6],
+    [w - 14, 6],
+    [w, h - 6],
+    [14, h - 6],
+  ]);
+  // 振动波线（右外）
+  for (let i = 0; i < 3; i++) {
+    const cx = w + 10;
+    const cy = 14 + i * 12;
+    addLine(group, [
+      [cx, cy],
+      [cx + 5, cy - 6],
+      [cx + 10, cy],
+    ]);
+  }
+  return group;
+}
+
 export function isColorSorterSymbolKind(kind: string): kind is ColorSorterSymbolKind {
   return (COLOR_SORTER_SYMBOL_KINDS as readonly string[]).indexOf(kind) !== -1;
 }
