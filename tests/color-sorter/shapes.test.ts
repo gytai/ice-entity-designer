@@ -24,6 +24,11 @@ import {
   dustCollectorShape,
   fanShape,
   controlCabinetShape,
+  inletShape,
+  outletShape,
+  rejectOutShape,
+  isColorSorterSymbolKind,
+  isColorSorterMedium,
 } from '../../src/color-sorter/colorSorter_shapes';
 
 describe('color-sorter / 仓斗类符号', () => {
@@ -123,5 +128,39 @@ describe('color-sorter / 除尘 + 电控', () => {
     expect(COLOR_SORTER_SYMBOL_PRESETS.dustCollector.shape).toBe('device');
     expect(COLOR_SORTER_SYMBOL_PRESETS.fan.shape).toBe('round');
     expect(COLOR_SORTER_SYMBOL_PRESETS.controlCabinet.shape).toBe('device');
+  });
+});
+
+describe('color-sorter / 边界符号', () => {
+  test.each([
+    ['inlet', inletShape],
+    ['outlet', outletShape],
+    ['rejectOut', rejectOutShape],
+  ] as const)('%s shape 函数存在且返回 ICEGroup', (kind, shape) => {
+    expect(typeof shape).toBe('function');
+    const group = shape(COLOR_SORTER_SYMBOL_PRESETS[kind]);
+    expect(group).toBeInstanceOf(ICEGroup);
+    expect(group.childNodes.length).toBeGreaterThan(0);
+  });
+
+  test('三个符号都登记为 boundary', () => {
+    expect(COLOR_SORTER_SYMBOL_PRESETS.inlet.shape).toBe('boundary');
+    expect(COLOR_SORTER_SYMBOL_PRESETS.outlet.shape).toBe('boundary');
+    expect(COLOR_SORTER_SYMBOL_PRESETS.rejectOut.shape).toBe('boundary');
+  });
+});
+
+describe('color-sorter / 守卫', () => {
+  test('isColorSorterSymbolKind 只认 18 种符号', () => {
+    expect(isColorSorterSymbolKind('colorSorter')).toBe(true);
+    expect(isColorSorterSymbolKind('rawBin')).toBe(true);
+    expect(isColorSorterSymbolKind('pump')).toBe(false);
+    expect(isColorSorterSymbolKind('')).toBe(false);
+  });
+  test('isColorSorterMedium 只认 7 种介质', () => {
+    expect(isColorSorterMedium('grain')).toBe(true);
+    expect(isColorSorterMedium('compressedAir')).toBe(true);
+    expect(isColorSorterMedium('sewage')).toBe(false);
+    expect(isColorSorterMedium('')).toBe(false);
   });
 });

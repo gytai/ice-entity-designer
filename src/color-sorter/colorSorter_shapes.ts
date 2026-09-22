@@ -532,6 +532,31 @@ export function controlCabinetShape(p: ColorSorterSymbolPreset): ICEGroup {
   return group;
 }
 
+/**
+ * 边界统一画法：旗形牌 + 右侧三角箭头（表示方向）+ 文字，三者形状一致仅标签不同。
+ */
+function boundaryShape(label: string): ICEGroup {
+  const group = newGroup();
+  addRect(group, 0, 0, 86, 36);
+  // 右侧三角箭头（表示方向）
+  addClosed(group, [
+    [86, 0],
+    [100, 18],
+    [86, 36],
+  ]);
+  addText(group, 8, 12, 78, label, 11);
+  return group;
+}
+export function inletShape(_p: ColorSorterSymbolPreset): ICEGroup {
+  return boundaryShape('来米 IN');
+}
+export function outletShape(_p: ColorSorterSymbolPreset): ICEGroup {
+  return boundaryShape('成品 OUT');
+}
+export function rejectOutShape(_p: ColorSorterSymbolPreset): ICEGroup {
+  return boundaryShape('副品外售 RJ');
+}
+
 export function isColorSorterSymbolKind(kind: string): kind is ColorSorterSymbolKind {
   return (COLOR_SORTER_SYMBOL_KINDS as readonly string[]).indexOf(kind) !== -1;
 }
