@@ -26,6 +26,8 @@ const BUDGET: Record<string, number> = {
   'er-component/Entity.ts': 7,
   'power/power_shapes.ts': 7,
   'power/power_voltage.ts': 7,
+  // 色选域包：领域色板（7 种介质的管线配色），与 water 同口径的合法登记项
+  'color-sorter/colorSorter_shapes.ts': 7,
   'uml/UmlRelation.ts': 6,
   'flow/FlowEdge.ts': 4,
   'gantt/GanttTask.ts': 4,
