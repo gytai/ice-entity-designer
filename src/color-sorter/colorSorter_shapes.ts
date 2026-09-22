@@ -386,6 +386,93 @@ export function packingScaleShape(p: ColorSorterSymbolPreset): ICEGroup {
   return group;
 }
 
+/**
+ * 空压机：主机箱 + 电机圆 + 散热片。
+ */
+export function airCompressorShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  addRect(group, 0, h / 2 - 12, w - 16, 24);
+  addCircle(group, w - 8, h / 2, 12);
+  // 散热片
+  for (let i = 0; i < 3; i++) {
+    addLine(group, [
+      [6 + i * 10, h / 2 - 16],
+      [6 + i * 10, h / 2 - 22],
+    ]);
+  }
+  return group;
+}
+
+/**
+ * 储气罐：立罐（圆罐身 + 上下封头）+ 顶部接管。
+ */
+export function airTankShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  const top = 6;
+  const cx = w / 2;
+  const bodyH = h - top;
+  addRect(group, cx - w / 3, top, (2 * w) / 3, 10);
+  addCircle(group, cx, top + bodyH / 2, bodyH / 2 - 6);
+  addRect(group, cx - w / 3, top + bodyH - 10, (2 * w) / 3, 10);
+  // 顶部接管
+  addLine(group, [
+    [cx, 0],
+    [cx, top],
+  ]);
+  return group;
+}
+
+/**
+ * 冷干机：机箱 + 六角雪花（制冷）。
+ */
+export function airDryerShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  addRect(group, 0, 8, w, h - 16);
+  // 六角雪花
+  const cx = w / 2;
+  const cy = h / 2;
+  const r = 14;
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI) / 3;
+    addLine(group, [
+      [cx, cy],
+      [cx + Math.cos(a) * r, cy + Math.sin(a) * r],
+    ]);
+  }
+  addCircle(group, cx, cy, 4);
+  return group;
+}
+
+/**
+ * 精密过滤器：滤芯筒 + 三级过滤芯线（虚线）+ 排水嘴。
+ */
+export function airFilterShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  addRect(group, (w - 40) / 2, 0, 40, h - 12, 8);
+  // 三级过滤芯线
+  for (let i = 0; i < 3; i++) {
+    addLine(
+      group,
+      [
+        [(w - 40) / 2 + 8 + i * 12, 8],
+        [(w - 40) / 2 + 8 + i * 12, h - 18],
+      ],
+      true
+    );
+  }
+  // 排水嘴
+  addLine(group, [
+    [w / 2, h - 12],
+    [w / 2, h - 2],
+  ]);
+  addCircle(group, w / 2, h - 4, 3);
+  return group;
+}
+
 export function isColorSorterSymbolKind(kind: string): kind is ColorSorterSymbolKind {
   return (COLOR_SORTER_SYMBOL_KINDS as readonly string[]).indexOf(kind) !== -1;
 }

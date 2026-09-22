@@ -17,6 +17,10 @@ import {
   vibFeederShape,
   colorSorterShape,
   packingScaleShape,
+  airCompressorShape,
+  airTankShape,
+  airDryerShape,
+  airFilterShape,
 } from '../../src/color-sorter/colorSorter_shapes';
 
 describe('color-sorter / 仓斗类符号', () => {
@@ -76,5 +80,26 @@ describe('color-sorter / 包装秤', () => {
     const group = packingScaleShape(COLOR_SORTER_SYMBOL_PRESETS.packingScale);
     expect(group).toBeInstanceOf(ICEGroup);
     expect(group.childNodes.length).toBeGreaterThan(0);
+  });
+});
+
+describe('color-sorter / 气源链四件套', () => {
+  test.each([
+    ['airCompressor', airCompressorShape],
+    ['airTank', airTankShape],
+    ['airDryer', airDryerShape],
+    ['airFilter', airFilterShape],
+  ] as const)('%s shape 函数存在且返回 ICEGroup', (kind, shape) => {
+    expect(typeof shape).toBe('function');
+    const group = shape(COLOR_SORTER_SYMBOL_PRESETS[kind]);
+    expect(group).toBeInstanceOf(ICEGroup);
+    expect(group.childNodes.length).toBeGreaterThan(0);
+  });
+
+  test('四个符号都登记在 presets', () => {
+    expect(COLOR_SORTER_SYMBOL_PRESETS.airCompressor.shape).toBe('device');
+    expect(COLOR_SORTER_SYMBOL_PRESETS.airTank.shape).toBe('round');
+    expect(COLOR_SORTER_SYMBOL_PRESETS.airDryer.shape).toBe('device');
+    expect(COLOR_SORTER_SYMBOL_PRESETS.airFilter.shape).toBe('device');
   });
 });
