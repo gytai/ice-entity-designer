@@ -15,6 +15,7 @@ import {
   rejectBinShape,
   elevatorShape,
   vibFeederShape,
+  colorSorterShape,
 } from '../../src/color-sorter/colorSorter_shapes';
 
 describe('color-sorter / 仓斗类符号', () => {
@@ -51,6 +52,17 @@ describe('color-sorter / 提升机 + 喂料器', () => {
     expect(typeof vibFeederShape).toBe('function');
     expect(COLOR_SORTER_SYMBOL_PRESETS.vibFeeder.shape).toBe('device');
     const group = vibFeederShape(COLOR_SORTER_SYMBOL_PRESETS.vibFeeder);
+    expect(group).toBeInstanceOf(ICEGroup);
+    expect(group.childNodes.length).toBeGreaterThan(0);
+  });
+});
+
+describe('color-sorter / 色选机主机', () => {
+  test('shape 存在 + preset，且返回 ICEGroup', () => {
+    expect(typeof colorSorterShape).toBe('function');
+    expect(COLOR_SORTER_SYMBOL_PRESETS.colorSorter.width).toBe(100);
+    expect(COLOR_SORTER_SYMBOL_PRESETS.colorSorter.height).toBe(96);
+    const group = colorSorterShape(COLOR_SORTER_SYMBOL_PRESETS.colorSorter);
     expect(group).toBeInstanceOf(ICEGroup);
     expect(group.childNodes.length).toBeGreaterThan(0);
   });

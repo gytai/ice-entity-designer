@@ -311,6 +311,58 @@ export function vibFeederShape(p: ColorSorterSymbolPreset): ICEGroup {
   return group;
 }
 
+/**
+ * 色选机主机：立柜 + 滑槽（斜线）+ 相机（带十字圆）+ 喷阀排 + 底部正品/副品双出料口。
+ * 这个符号是整个色选域包的辨识核心——观众一眼看出"这里在做色选"。
+ */
+export function colorSorterShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  // 立柜外框
+  addRect(group, 12, 0, w - 24, h);
+  // 顶部进料口
+  addLine(group, [
+    [w / 2 - 8, 8],
+    [w / 2 - 8, 24],
+    [w / 2 + 8, 24],
+    [w / 2 + 8, 8],
+  ]);
+  // 滑槽（斜线，从顶进料口到中部）
+  addLine(group, [
+    [w / 2 - 8, 24],
+    [w / 2 + 18, 56],
+  ]);
+  // 相机（带十字圆）
+  addCircle(group, w / 2 + 24, 50, 5);
+  addLine(group, [
+    [w / 2 + 24, 45],
+    [w / 2 + 24, 55],
+  ]);
+  addLine(group, [
+    [w / 2 + 19, 50],
+    [w / 2 + 29, 50],
+  ]);
+  // 喷阀排（底部三个短竖线）
+  for (let i = 0; i < 3; i++) {
+    addLine(group, [
+      [w / 2 - 10 + i * 10, h - 28],
+      [w / 2 - 10 + i * 10, h - 18],
+    ]);
+  }
+  // 底部双出料口（正品左、副品右）
+  addLine(group, [
+    [w / 2 - 12, h - 4],
+    [w / 2 - 4, h - 14],
+    [w / 2 - 4, h - 4],
+  ]);
+  addLine(group, [
+    [w / 2 + 4, h - 14],
+    [w / 2 + 4, h - 4],
+    [w / 2 + 12, h - 4],
+  ]);
+  return group;
+}
+
 export function isColorSorterSymbolKind(kind: string): kind is ColorSorterSymbolKind {
   return (COLOR_SORTER_SYMBOL_KINDS as readonly string[]).indexOf(kind) !== -1;
 }
