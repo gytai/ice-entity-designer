@@ -10,10 +10,130 @@
  *   - 紫色系 = 信号/动力。
  *
  * 当前架构：kind-first。本文件只输出 shape/preset/medium 颜色与文本，
- * 引擎主题（描边色/字号）由实例 applyDesignerChrome(ice) 派生。
+ * 引擎主题（描边色/字号）由实例 applyDesignerChrome(ice) 派生 —— 画法函数不写死
+ * 任何色值（描边/填充走主题默认），唯一的色板是下面的介质表（已在取色预算棘轮登记）。
  *
- * （画法函数在后续 task 逐组补全，届时从 ice-render 引入矢量原语。）
+ * 与 water 同一条画线口径（见 water_shapes 的 __poly / __closedPoly 注释）：
+ * - 轴对齐的两点直线画成细矩形 —— 折线包围盒由点集算出，水平线高 0、垂直线宽 0，
+ *   组件级离屏缓存会拿 0 尺寸画布去 drawImage 而报错；
+ * - 闭合图形拆成「开放折线 + 单独一条闭合边」，不用 closePath / 首尾重复点；
+ * - 轴对齐虚线用一串细矩形拼出（既要虚线外观、又要包围盒不退化）。
  */
+import { ICECircle, ICEGroup, ICEPolyLine, ICERect, ICEText, token } from 'ice-render';
+
+/** 组内坐标用数对（ICEPolyLine 的 points 口径）。 */
+type Pt = [number, number];
+
+/** 细矩形线段的厚度（与引擎默认 lineWidth 一致）。 */
+const LINE_WIDTH = 1;
+
+/** 线色：与主题默认 strokeStyle（semantic.border）同一路径，paint 时解析。 */
+const lineColor = () => token('border');
+
+/** 空组：自身不画（轮廓一律由子件绘制）。 */
+function newGroup(): ICEGroup {
+  return new ICEGroup({ fill: false, stroke: false });
+}
+
+/** 空心矩形（描边走主题默认；radius 为圆角）。 */
+function addRect(group: ICEGroup, left: number, top: number, width: number, height: number, radius = 0): ICERect {
+  const rect = new ICERect({ left, top, width, height, radius, fill: false, interactive: false, linkable: false });
+  group.addChild(rect);
+  return rect;
+}
+
+/** 空心圆（ICECircle 的位置参数是外接盒左上角 left/top，这里按圆心收参）。 */
+function addCircle(group: ICEGroup, cx: number, cy: number, r: number): ICECircle {
+  const circle = new ICECircle({
+    left: cx - r,
+    top: cy - r,
+    radius: r,
+    fill: false,
+    interactive: false,
+    linkable: false,
+  });
+  group.addChild(circle);
+  return circle;
+}
+
+/** 一段填充细矩形（轴对齐线段 / 虚线段落的落点）。 */
+function addThinRect(group: ICEGroup, left: number, top: number, width: number, height: number): void {
+  const color = lineColor();
+  group.addChild(
+    new ICERect({
+      left,
+      top,
+      width,
+      height,
+      interactive: false,
+      linkable: false,
+      style: { fillStyle: color, strokeStyle: color, lineWidth: 0 },
+    })
+  );
+}
+
+/**
+ * 折线。两点且某一维轴对齐退化的，画成细矩形（渲染结果一致、包围盒不退化，与 water 同口径）；
+ * 轴对齐虚线用一串细矩形拼出（ICEPolyLine 的虚线会让包围盒退化，矩形拼的不会）。
+ */
+function addLine(group: ICEGroup, pts: Pt[], dashed = false): void {
+  const degenerate =
+    pts.length === 2 && (Math.abs(pts[1][0] - pts[0][0]) < 0.01 || Math.abs(pts[1][1] - pts[0][1]) < 0.01);
+  if (degenerate) {
+    const [ax, ay] = pts[0];
+    const [bx, by] = pts[1];
+    const horizontal = Math.abs(ay - by) < 0.01;
+    const len = horizontal ? Math.abs(bx - ax) : Math.abs(by - ay);
+    if (!dashed) {
+      const left = horizontal ? Math.min(ax, bx) : Math.min(ax, bx) - LINE_WIDTH / 2;
+      const top = horizontal ? Math.min(ay, by) - LINE_WIDTH / 2 : Math.min(ay, by);
+      addThinRect(group, left, top, horizontal ? len : LINE_WIDTH, horizontal ? LINE_WIDTH : len);
+      return;
+    }
+    // 虚线：dash 4 / gap 3 的细矩形串
+    const dir = (horizontal ? bx - ax : by - ay) >= 0 ? 1 : -1;
+    for (let d = 0; d < len; d += 7) {
+      const seg = Math.min(4, len - d);
+      const left = horizontal ? ax + dir * d : ax - LINE_WIDTH / 2;
+      const top = horizontal ? ay - LINE_WIDTH / 2 : ay + dir * d;
+      addThinRect(group, left, top, horizontal ? seg : LINE_WIDTH, horizontal ? LINE_WIDTH : seg);
+    }
+    return;
+  }
+  group.addChild(
+    new ICEPolyLine({
+      points: pts,
+      lineType: dashed ? 'dashed' : 'solid',
+      arrow: 'none',
+      interactive: false,
+      linkable: false,
+    } as any)
+  );
+}
+
+/** 闭合图形：先画开放折线，再单独补一条闭合边（与 water 的 __closedPoly 同口径）。 */
+function addClosed(group: ICEGroup, pts: Pt[], dashed = false): void {
+  addLine(group, pts, dashed);
+  addLine(group, [pts[pts.length - 1], pts[0]], dashed);
+}
+
+/** 文本部件：显式文字盒 + textAlign/textBaseline（与 water 的 __text 同口径）。 */
+function addText(group: ICEGroup, left: number, top: number, width: number, text: string, fontSize: number): ICEText {
+  const node = new ICEText({
+    left,
+    top,
+    width,
+    height: Math.round(fontSize * 1.4),
+    text,
+    stroke: false,
+    interactive: false,
+    linkable: false,
+    style: { fontSize, textAlign: 'left', textBaseline: 'middle' },
+  });
+  group.addChild(node);
+  return node;
+}
+
 export const COLOR_SORTER_SYMBOL_KINDS = [
   // ---- 主料流设备（大米线）----
   'rawBin',
@@ -87,8 +207,47 @@ export const COLOR_SORTER_SYMBOL_PRESETS: Record<ColorSorterSymbolKind, ColorSor
   rejectOut: { label: '副品外售', tag: 'RJ', width: 96, height: 40, shape: 'boundary', inline: false },
 };
 
-// 符号画法组将在后续 task 补全
-// （rawBinShape / bufferBinShape / ... / boundaryShapes）
+/**
+ * 仓斗统一画法：筒身 + 倒锥斗底 + 顶进料口。
+ * @param width  整体宽
+ * @param height 整体高（含顶部进料口 6px）
+ * @param hasInletTop  顶部进料口（原料仓/缓冲斗有；成品斗/副品斗的入料多在侧面）
+ */
+function binShape(width: number, height: number, hasInletTop: boolean): ICEGroup {
+  const bodyTop = hasInletTop ? 6 : 0;
+  const bodyH = height - bodyTop - (height - bodyTop) * 0.42;
+  const group = newGroup();
+  if (hasInletTop) {
+    addRect(group, (width - 24) / 2, 0, 24, 6, 2);
+  }
+  addRect(group, 0, bodyTop, width, bodyH);
+  // 倒锥斗底
+  addClosed(group, [
+    [0, bodyTop + bodyH],
+    [width / 2, height],
+    [width, bodyTop + bodyH],
+  ]);
+  // 出料口小段
+  addLine(group, [
+    [width / 2, height],
+    [width / 2, height + 6],
+  ]);
+  return group;
+}
+
+export function rawBinShape(p: ColorSorterSymbolPreset): ICEGroup {
+  return binShape(p.width, p.height, true);
+}
+export function bufferBinShape(p: ColorSorterSymbolPreset): ICEGroup {
+  return binShape(p.width, p.height, true);
+}
+export function productBinShape(p: ColorSorterSymbolPreset): ICEGroup {
+  return binShape(p.width, p.height, false);
+}
+export function rejectBinShape(p: ColorSorterSymbolPreset): ICEGroup {
+  return binShape(p.width, p.height, false);
+}
+
 export function isColorSorterSymbolKind(kind: string): kind is ColorSorterSymbolKind {
   return (COLOR_SORTER_SYMBOL_KINDS as readonly string[]).indexOf(kind) !== -1;
 }
