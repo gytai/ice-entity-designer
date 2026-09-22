@@ -2,8 +2,8 @@
 
 ## 项目定位
 
-基于 **ice-render** 内核的领域设计器合集（ER / 流程图 / BPMN / UML / 状态机 / 甘特 / 电力一次 / 电力二次），
-领域图元以 `ice-entity-designer:*` 命名空间注册；`examples/*.html` 是可直接打开的完整编辑器。
+基于 **ice-render** 内核的领域设计器合集（ER / 流程图 / BPMN / UML / 状态机 / 甘特 / 电力一次 / 电力二次 /
+给水排水 / 大米色选），领域图元以 `ice-entity-designer:*` 命名空间注册；`examples/*.html` 是可直接打开的完整编辑器。
 
 ## 分支与发版约定（家族铁律，2026-09-13 确立）
 
@@ -17,7 +17,7 @@
 
 ## 门禁
 
-- `npm run lint`（eslint，0 error 起步）/ `npm run types:check` / `npm test`（jest 37 suites / 398 用例，2026-09-19 实测）
+- `npm run lint`（eslint，0 error 起步）/ `npm run types:check` / `npm test`（jest 42 suites / 470 用例，2026-09-22 实测）
   / `npm run test:coverage`（棘轮：statements 88 / lines 88 / branches 74 / functions 85）/ `npm run build`
 - `npm run test:e2e`：Playwright，覆盖 9 个编辑器示例页（含 BPMN 令牌仿真）
 - **引擎改动之后的下游回归**走引擎仓的脚本（它会把本仓的 `node_modules/ice-render` 临时指向工作区引擎、
@@ -165,6 +165,8 @@ Google 的 TypeScript 指南对顺序**完全沉默**（全文 "ordering" 出现
 | 甘特（`gantt-editor`） | 任务条 | **时间标尺（GanttRuler：表头 + 刻度）** |
 | 电力一次（`power-editor`） | 设备符号、母线、电缆 | —（`cubicle` 按 GB/T 4728.1 是"方框符号=设备"，仍可接线） |
 | 电力二次（`secondary-editor`） | 二次元件、**端子** | **端子排（TerminalStrip）**（容器：接线连到端子，不连到端子排本身） |
+| 给水排水（`water-editor`） | 处理单元 / 设备与仪表 / 边界符号 | —（位号、名称、内部形状都是派生部件，已标 `linkable: false`） |
+| 大米色选（`color-sorter`，示例 `examples/color-sorter-demo.ts`） | 18 种符号（含 `inlet` / `outlet` / `rejectOut` 边界） | —（同上；本包没有容器型图元，符号本体全部可接线） |
 
 另外：以上所有域包内部**装饰子组件**（形状 / 标签 / 角标 / 刻度线）都不该参与可连接判定 ——
 可连接性属于外层节点。本仓已把 BPMN、甘特标尺、端子排的装饰件改为 `linkable: false`；

@@ -4,7 +4,7 @@
 
 <h1 align="center">IED · ice entity designer</h1>
 
-<p align="center">基于 ice-render 的可视化建模工具集：一套引擎承载 9 个域包 —— ER、流程图、BPMN 2.0、UML 类图、状态机、甘特、电力一次、电力二次、给水排水。</p>
+<p align="center">基于 ice-render 的可视化建模工具集：一套引擎承载 10 个域包 —— ER、流程图、BPMN 2.0、UML 类图、状态机、甘特、电力一次、电力二次、给水排水、大米色选。</p>
 
 > 变更日志见 [CHANGELOG.md](./CHANGELOG.md)。
 
@@ -33,6 +33,7 @@ IED（ice entity designer）是基于 [ice-render](https://github.com/ice-render
 | 电力一次系统图 | 单线图（23 种设备符号） | JB/T 5872-1991、GB/T 4728；电压一致 / 母线 T 接 / 五防校验 |
 | 电力二次回路 | 保护电流回路 + 端子排 | GB/T 4728.7、C37.2；回路编号 / 三相成组 / 端子号 / 接地校验 |
 | 给水排水工艺流程图 | 水厂 / 污水厂 AAO 主线 + 污泥线 | GB/T 50106 图例、GB 50014；工艺校验（进出线 / 介质管径 / 在线监测 / 污泥出路 / 内回流）+ 流径分析 |
+| 大米色选工艺图 | 色选主线 + 副品复选 + 气源 + 除尘 | 粮食行业通行画法（不引强制性国标图例）；工艺校验（色选机必接压缩空气 / 成品出路 / 副品出路 / 喂料器在色选机上游） |
 
 默认域包 ER 以「节点 = 实体，连线 = 关系」组织数据模型，把画布上的设计结果序列化为符合 TypeORM `EntitySchema` 规范的 Schema，从而将「结构设计」与「实体类 / CRUD 代码生成」直接衔接；其它域包复用同一套交互闭环（选择、创建、更新、删除、关系连接、校验与导出），只在**记法**与**语义校验**上做区分。
 
@@ -613,6 +614,49 @@ const svg = secondary.toSvg({ background: '#ffffff' });
 
 可运行示例：`examples/secondary-editor.html`（110kV 线路保护电流回路，简化版）。
 
+#### 5.11 大米色选工艺图（`ColorSorterDesigner`）
+
+色选车间与污水厂是两套完全不同的设备谱系：**主米流**（来米 → 原料仓 → 提升机 → 振动喂料器 → 色选机 →
+成品斗 → 包装秤 → 出库）、**副品复选**、**压缩空气链**、**除尘链**。18 种符号按粮食行业通行画法自绘
+（**不引用任何强制性国标图例**），管线按介质着色与定线型 —— 米线、气线、除尘线、信号线一眼分得开。
+
+```js
+import { ICE, ColorSorterDesigner, validateColorSorter } from 'ice-entity-designer';
+
+const ice = new ICE().init('canvas-1');
+const designer = new ColorSorterDesigner(ice);
+
+designer.createSymbol('vibFeeder', { id: 'vf', name: '振动喂料器', tag: 'VF-201', left: 0, top: 0 });
+designer.createSymbol('colorSorter', { id: 'cs', name: '色选机', tag: 'CS-201', left: 200, top: 0 });
+designer.createSymbol('outlet', { id: 'out', name: '成品出库', tag: 'OUT', left: 400, top: 0 });
+designer.createPipe({ id: 'p1', sourceId: 'vf', targetId: 'cs', medium: 'grain', dn: 'φ159' });
+designer.createPipe({ id: 'p2', sourceId: 'cs', targetId: 'out', medium: 'grain', dn: 'φ159' });
+```
+
+也可以直接吃一份 DSL 文档（`units + pipes + viewport`，与给水排水**同形**）：
+
+```js
+designer.mount({
+  kind: 'color-sorter',
+  units: [
+    { id: 'cs', kind: 'colorSorter', name: '色选机', tag: 'CS-201', left: 200, top: 0 },
+    { id: 'out', kind: 'outlet', name: '成品出库', tag: 'OUT', left: 400, top: 0 },
+  ],
+  pipes: [{ id: 'p2', sourceId: 'cs', targetId: 'out', medium: 'grain', dn: 'φ159' }],
+});
+validateColorSorter(doc);   // 永不抛异常，只给结构化诊断
+```
+
+| 能力 | 说明 |
+|---|---|
+| 符号库 | 18 种：仓斗类 4 / 提升机与振动喂料器 2 / 色选机主机 1 / 包装秤 1 / 气源四件套 4 / 除尘 2 / 电控柜 1 / 边界 3 |
+| 介质 | 7 种：大米主流 / 副品 / 复选回料（实线）、压缩空气 / 含尘气流（虚线）、仪表信号 / 动力回路（点划线） |
+| 工艺校验 | `validateColorSorter(doc)`：色选机必须接压缩空气、成品必须有出路、副品必须接 `rejectOut` 或走 `recycle` 复选回料、振动喂料器必须在色选机**上游** |
+| 画法路由 | `ColorSorterDesigner.createSymbolPath(kind)` 把 18 个 kind 路由到对应画法函数；未支持的 kind 抛错 |
+| DSL 装载 | `mount(doc)` 按一份 `ColorSorterDslDocument` 建图（构造期传 doc 也会自动装载） |
+
+最小示例（12 单元 / 18 管线，新符号的视觉验证）：`examples/color-sorter-demo.ts`。
+
 ## 6. 在 React 中使用
 
 包内置 React 绑定（子路径导出 `ice-entity-designer/react`），不需要自己写 ref / effect 胶水代码。
@@ -762,7 +806,7 @@ React 里可沿用 `createFlowSession` 的模式自建一层封装。
 ### 7.1 一个「域包（domain pack）」由什么组成
 
 域包 = **一个领域的记法 + 应用层 + 语义校验**，跑在同一套引擎与同一套应用层机制上。现已落地
-9 个域包：ER、流程图、BPMN 2.0、UML 类图、状态机、甘特、电力一次系统图、电力二次回路、给水排水工艺流程图 —— 边际成本
+10 个域包：ER、流程图、BPMN 2.0、UML 类图、状态机、甘特、电力一次系统图、电力二次回路、给水排水工艺流程图、大米色选工艺图 —— 边际成本
 主要在「记法本身」，不在编辑器：
 
 | 组成 | 复用什么 | 以 UML 为例 |
@@ -818,6 +862,10 @@ src/
 ├── water/                         # 给水排水工艺流程图（水厂 / 污水厂：AAO 主线 + 污泥线）
 │   ├── water_shapes.ts            # 21 种符号（GB/T 50106 图例；水线蓝 / 污泥线黄）
 │   └── WaterProcessDesigner.ts    # 应用层：介质 + 管径、工艺校验、流径分析（关阀断流）
+├── color-sorter/                  # 大米色选工艺图（色选主线 + 副品复选 + 气源 + 除尘）
+│   ├── colorSorter_shapes.ts      # 18 种符号画法函数 + 介质表 + DSL 文档类型（粮食行业通行画法）
+│   ├── ColorSorterDesigner.ts     # 应用层：符号/管线、介质着色与线型、DSL 装载（createSymbolPath 路由 18 画法）
+│   └── validateColorSorter.ts     # 工艺校验：永不抛 + 四条色选约束（气源 / 成品出路 / 副品出路 / 喂料器上游）
 ├── er-component/
 │   ├── Entity.ts                  # 实体：表头 + 字段列表 + 约束标记 + TypeORM 序列化
 │   └── Relation.ts                # 关系：基数 / 箭头 / 标签语义 / 连接槽位

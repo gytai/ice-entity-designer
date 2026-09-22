@@ -27,6 +27,7 @@ import PowerSymbol from '../../src/power/power_shapes';
 import { PowerLine } from '../../src/power/PowerDesigner';
 import WaterSymbol from '../../src/water/water_shapes';
 import { WaterPipe } from '../../src/water/WaterProcessDesigner';
+import { ColorSorterPipe, ColorSorterSymbol } from '../../src/color-sorter/ColorSorterDesigner';
 
 function makeIce() {
   const ice: any = new ICE();
@@ -37,7 +38,7 @@ function makeIce() {
 }
 
 describe('跨域包 · 记法不可变换（只允许拖动）', () => {
-  it('ER / UML / 状态机 / 甘特 / 流程图 / BPMN / 电力 / 给排水 的图元都不允许变换', () => {
+  it('ER / UML / 状态机 / 甘特 / 流程图 / BPMN / 电力 / 给排水 / 色选 的图元都不允许变换', () => {
     const ice = makeIce();
     const samples: Array<[string, any]> = [
       ['ER Entity', new Entity({ entityName: 'User' })],
@@ -58,6 +59,8 @@ describe('跨域包 · 记法不可变换（只允许拖动）', () => {
       ['给排水处理单元', new WaterSymbol({ kind: 'aerobicTank', name: '好氧池' })],
       ['给排水设备', new WaterSymbol({ kind: 'pump', name: '1#提升泵' })],
       ['给排水管线', new WaterPipe({})],
+      ['色选符号', new ColorSorterSymbol({ kind: 'colorSorter', name: '色选机' })],
+      ['色选管线', new ColorSorterPipe({})],
     ];
     samples.forEach(([name, component]) => {
       // 关系/连线类组件由各自的基类保证；这里统一断言

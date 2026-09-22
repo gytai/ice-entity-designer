@@ -95,6 +95,34 @@ export {
 } from './water/water_shapes';
 export type { WaterSymbolKind, WaterMedium, WaterValveState, WaterSymbolPreset } from './water/water_shapes';
 
+// 大米色选工艺流程图（色选机主线 + 副品复选 + 气源 + 除尘）
+export {
+  default as ColorSorterDesigner,
+  ColorSorterPipe,
+  ColorSorterSymbol,
+  composePipeLabel as composeColorSorterPipeLabel,
+  dashPatternOf as colorSorterDashPatternOf,
+} from './color-sorter/ColorSorterDesigner';
+export { validateColorSorter } from './color-sorter/validateColorSorter';
+export type { ColorSorterDiagnostic, ColorSorterValidationResult } from './color-sorter/validateColorSorter';
+export {
+  COLOR_SORTER_SYMBOL_KINDS,
+  COLOR_SORTER_SYMBOL_PRESETS,
+  COLOR_SORTER_MEDIUM_STYLES,
+  COLOR_SORTER_SHAPE_PATHS,
+  isColorSorterSymbolKind,
+  isColorSorterMedium,
+} from './color-sorter/colorSorter_shapes';
+export type {
+  ColorSorterSymbolKind,
+  ColorSorterMedium,
+  ColorSorterSymbolPreset,
+  ColorSorterDslDocument,
+  ColorSorterDslUnit,
+  ColorSorterDslPipe,
+  ColorSorterDslPort,
+} from './color-sorter/colorSorter_shapes';
+
 // 文本互操作：PlantUML / Mermaid 类图语法子集（导入导出）
 export { toPlantUml, fromPlantUml, arrowOf, detectUmlDialect } from './uml/uml_text';
 export type { UmlTextImportResult } from './uml/uml_text';

@@ -34,6 +34,7 @@ import SecondarySymbol, { TerminalStrip } from '../secondary/secondary_shapes';
 import { SecondaryWire } from '../secondary/SecondaryDesigner';
 import WaterSymbol from '../water/water_shapes';
 import { WaterPipe } from '../water/WaterProcessDesigner';
+import { ColorSorterPipe, ColorSorterSymbol } from '../color-sorter/ColorSorterDesigner';
 
 /** IED 的全部领域图元类型（顺序无关，注册是幂等的）。 */
 const IED_TYPE_CLASSES: Array<{ typeId: string }> = [
@@ -66,6 +67,8 @@ const IED_TYPE_CLASSES: Array<{ typeId: string }> = [
   TerminalStrip,
   WaterSymbol,
   WaterPipe,
+  ColorSorterSymbol,
+  ColorSorterPipe,
 ];
 
 /**

@@ -21,6 +21,7 @@ import PowerSymbol from '../../src/power/power_shapes';
 import { PowerLine } from '../../src/power/PowerDesigner';
 import WaterSymbol from '../../src/water/water_shapes';
 import { WaterPipe } from '../../src/water/WaterProcessDesigner';
+import { ColorSorterPipe, ColorSorterSymbol } from '../../src/color-sorter/ColorSorterDesigner';
 import SecondarySymbol from '../../src/secondary/secondary_shapes';
 
 /** 有派生部件的图元：它们的每个子节点都不该是连线端点 */
@@ -39,6 +40,8 @@ const SYMBOLS: Array<[string, () => any]> = [
   ['给排水设备', () => new WaterSymbol({ kind: 'pump', name: '1#提升泵', tag: 'P-101' })],
   ['给排水在线仪表', () => new WaterSymbol({ kind: 'analyzer', name: '在线监测', tag: 'AIT-101' })],
   ['二次元件', () => new SecondarySymbol({ kind: 'contactNO', name: '52a', tag: '52a' })],
+  ['色选符号', () => new ColorSorterSymbol({ kind: 'colorSorter', name: '色选机', tag: 'CS-201' })],
+  ['色选边界', () => new ColorSorterSymbol({ kind: 'rejectOut', name: '副品外售', tag: 'RJ' })],
 ];
 
 /** 连线类型：本体一律不可连接（引擎在 ICEPolyLine 里已统一处理） */
@@ -50,6 +53,7 @@ const LINES: Array<[string, () => any]> = [
   ['甘特依赖线', () => new GanttDependency({})],
   ['电力导体', () => new PowerLine({})],
   ['给排水管线', () => new WaterPipe({})],
+  ['色选管线', () => new ColorSorterPipe({})],
 ];
 
 describe('跨域包 · 派生部件不可连接', () => {

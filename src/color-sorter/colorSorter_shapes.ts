@@ -30,9 +30,15 @@ const LINE_WIDTH = 1;
 /** 线色：与主题默认 strokeStyle（semantic.border）同一路径，paint 时解析。 */
 const lineColor = () => token('border');
 
-/** 空组：自身不画（轮廓一律由子件绘制）。 */
+/**
+ * 空组：自身不画（轮廓一律由子件绘制）。
+ *
+ * **必须标 `linkable: false` + `interactive: false`**：引擎的 `ICELinkSlotManager` 会拉平整棵树去找
+ * `linkable` 组件，而组件默认 `linkable: true` —— 漏标的话拖连线时插槽会吸附到这层"形状容器"上，
+ * 而不是符号本体（跨包回归见 `tests/designer/derived-parts-not-linkable.test.ts`）。
+ */
 function newGroup(): ICEGroup {
-  return new ICEGroup({ fill: false, stroke: false });
+  return new ICEGroup({ fill: false, stroke: false, interactive: false, linkable: false });
 }
 
 /** 空心矩形（描边走主题默认；radius 为圆角）。 */
@@ -563,4 +569,73 @@ export function isColorSorterSymbolKind(kind: string): kind is ColorSorterSymbol
 
 export function isColorSorterMedium(m: string): m is ColorSorterMedium {
   return m in COLOR_SORTER_MEDIUM_STYLES;
+}
+
+/**
+ * kind → 画法函数。**单一来源**：符号组件（`ColorSorterSymbol.syncShape`）与设计器的
+ * `ColorSorterDesigner.createSymbolPath` 都走这张表，避免两处各写一个 switch 后走岔。
+ */
+export const COLOR_SORTER_SHAPE_PATHS: Record<ColorSorterSymbolKind, (preset: ColorSorterSymbolPreset) => ICEGroup> = {
+  rawBin: rawBinShape,
+  bufferBin: bufferBinShape,
+  productBin: productBinShape,
+  rejectBin: rejectBinShape,
+  elevator: elevatorShape,
+  vibFeeder: vibFeederShape,
+  colorSorter: colorSorterShape,
+  packingScale: packingScaleShape,
+  airCompressor: airCompressorShape,
+  airTank: airTankShape,
+  airDryer: airDryerShape,
+  airFilter: airFilterShape,
+  dustCollector: dustCollectorShape,
+  fan: fanShape,
+  controlCabinet: controlCabinetShape,
+  inlet: inletShape,
+  outlet: outletShape,
+  rejectOut: rejectOutShape,
+};
+
+/** 连线槽位（与引擎 `FlowPort` 同口径） */
+export type ColorSorterDslPort = 'T' | 'R' | 'B' | 'L' | 'C';
+
+export interface ColorSorterDslUnit {
+  /** 必填且在一份文档里唯一（管线的 `sourceId` / `targetId` 引用它） */
+  id: string;
+  /** 符号种类，取值见 `COLOR_SORTER_SYMBOL_KINDS`（18 种） */
+  kind: string;
+  /** 中文名（画在符号下方） */
+  name?: string;
+  /** 位号（画在符号上方，如 `CS-201`） */
+  tag?: string;
+  left: number;
+  top: number;
+}
+
+export interface ColorSorterDslPipe {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  /** 介质，取值见 `COLOR_SORTER_MEDIUM_STYLES`（7 种），决定颜色与线型 */
+  medium: string;
+  /** 管径标注（如 `φ219`）；信号线 / 动力线没有管径，留空 */
+  dn?: string;
+  sourcePort?: ColorSorterDslPort;
+  targetPort?: ColorSorterDslPort;
+}
+
+/**
+ * 色选工艺图 DSL 文档。**与 `WaterProcessDslDocument` 同形**（units + pipes + viewport）——
+ * 一张图一张表的定位不变，两个域包共用同一套编译 / 校验骨架。
+ */
+export interface ColorSorterDslDocument {
+  kind: 'color-sorter';
+  /** 可选标题 */
+  title?: string;
+  /** 初始视图提示：要框进初始视野的单元 id；不写则用全部单元 */
+  viewport?: {
+    focus?: string[];
+  };
+  units: ColorSorterDslUnit[];
+  pipes: ColorSorterDslPipe[];
 }
