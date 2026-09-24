@@ -1,5 +1,5 @@
 /**
- * 色选工艺图应用层：建图、18 个符号画法路由、管线（介质 + 管径）、DSL 装载、删除级联。
+ * 色选工艺图应用层：建图、27 个符号画法路由、管线（介质 + 管径）、DSL 装载、删除级联。
  *
  * 与给水排水包的 `water-designer.test.ts` 同一套骨架 —— 这一层卖的不是"画得像"，
  * 而是**画完之后能说清工艺上对不对**（校验器另测，见 validate.test.ts）。
@@ -18,8 +18,8 @@ function makeDesigner(doc?: ColorSorterDslDocument): any {
 }
 
 describe('color-sorter / createSymbolPath 路由', () => {
-  it('18 种符号每一种都能取到画法函数', () => {
-    expect(COLOR_SORTER_SYMBOL_KINDS).toHaveLength(18);
+  it('27 种符号每一种都能取到画法函数', () => {
+    expect(COLOR_SORTER_SYMBOL_KINDS).toHaveLength(27);
     COLOR_SORTER_SYMBOL_KINDS.forEach((kind) => {
       const fn = ColorSorterDesigner.createSymbolPath(kind);
       expect(typeof fn).toBe('function');
@@ -33,7 +33,7 @@ describe('color-sorter / createSymbolPath 路由', () => {
 });
 
 describe('color-sorter / createSymbol', () => {
-  it('18 种符号都能建出来，且内部形状有内容', () => {
+  it('27 种符号都能建出来，且内部形状有内容', () => {
     const d = makeDesigner();
     COLOR_SORTER_SYMBOL_KINDS.forEach((kind) => {
       const symbol = d.createSymbol(kind, { left: 0, top: 0 });

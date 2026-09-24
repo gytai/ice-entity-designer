@@ -166,7 +166,7 @@ Google 的 TypeScript 指南对顺序**完全沉默**（全文 "ordering" 出现
 | 电力一次（`power-editor`） | 设备符号、母线、电缆 | —（`cubicle` 按 GB/T 4728.1 是"方框符号=设备"，仍可接线） |
 | 电力二次（`secondary-editor`） | 二次元件、**端子** | **端子排（TerminalStrip）**（容器：接线连到端子，不连到端子排本身） |
 | 给水排水（`water-editor`） | 处理单元 / 设备与仪表 / 边界符号 | —（位号、名称、内部形状都是派生部件，已标 `linkable: false`） |
-| 大米色选（`color-sorter`，示例 `examples/color-sorter-demo.ts`） | 18 种符号（含 `inlet` / `outlet` / `rejectOut` 边界） | —（同上；本包没有容器型图元，符号本体全部可接线） |
+| 大米色选（`color-sorter`，示例 `examples/color-sorter-demo.ts`） | 27 种符号（含 `inlet` / `outlet` / `rejectOut` 边界） | —（同上；本包没有容器型图元，符号本体全部可接线） |
 
 另外：以上所有域包内部**装饰子组件**（形状 / 标签 / 角标 / 刻度线）都不该参与可连接判定 ——
 可连接性属于外层节点。本仓已把 BPMN、甘特标尺、端子排的装饰件改为 `linkable: false`；

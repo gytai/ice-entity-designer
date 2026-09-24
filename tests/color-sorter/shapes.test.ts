@@ -4,11 +4,20 @@
  * 每组符号两类断言：
  * 1. shape 函数存在、preset 登记正确（计划给定）；
  * 2. 用对应 preset 真调用一遍画法函数，断言返回 ICEGroup 且 childNodes.length > 0
- *    （否则 18 个画法函数零覆盖，会击穿 test:coverage 棘轮）。
+ *    （否则画法函数零覆盖，会击穿 test:coverage 棘轮）。
  */
 import { ICEGroup } from 'ice-render';
 import {
   COLOR_SORTER_SYMBOL_PRESETS,
+  preCleanerShape,
+  destonerShape,
+  huskerShape,
+  paddySeparatorShape,
+  riceMillShape,
+  polisherShape,
+  stoneBinShape,
+  huskBinShape,
+  branBinShape,
   rawBinShape,
   bufferBinShape,
   productBinShape,
@@ -150,8 +159,39 @@ describe('color-sorter / 边界符号', () => {
   });
 });
 
+describe('color-sorter / 前处理与碾米段（色选之前的那几道工序）', () => {
+  test.each([
+    ['preCleaner', preCleanerShape],
+    ['destoner', destonerShape],
+    ['husker', huskerShape],
+    ['paddySeparator', paddySeparatorShape],
+    ['riceMill', riceMillShape],
+    ['polisher', polisherShape],
+  ] as const)('%s shape 函数存在且返回 ICEGroup', (kind, shape) => {
+    expect(typeof shape).toBe('function');
+    expect(COLOR_SORTER_SYMBOL_PRESETS[kind].shape).toBe('device');
+    const group = shape(COLOR_SORTER_SYMBOL_PRESETS[kind]);
+    expect(group).toBeInstanceOf(ICEGroup);
+    expect(group.childNodes.length).toBeGreaterThan(0);
+  });
+});
+
+describe('color-sorter / 副产物接收（石子 / 稻壳 / 米糠）', () => {
+  test.each([
+    ['stoneBin', stoneBinShape],
+    ['huskBin', huskBinShape],
+    ['branBin', branBinShape],
+  ] as const)('%s shape 函数存在且返回 ICEGroup', (kind, shape) => {
+    expect(typeof shape).toBe('function');
+    expect(COLOR_SORTER_SYMBOL_PRESETS[kind].shape).toBe('tank');
+    const group = shape(COLOR_SORTER_SYMBOL_PRESETS[kind]);
+    expect(group).toBeInstanceOf(ICEGroup);
+    expect(group.childNodes.length).toBeGreaterThan(0);
+  });
+});
+
 describe('color-sorter / 守卫', () => {
-  test('isColorSorterSymbolKind 只认 18 种符号', () => {
+  test('isColorSorterSymbolKind 只认登记过的符号', () => {
     expect(isColorSorterSymbolKind('colorSorter')).toBe(true);
     expect(isColorSorterSymbolKind('rawBin')).toBe(true);
     expect(isColorSorterSymbolKind('pump')).toBe(false);

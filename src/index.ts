@@ -123,6 +123,47 @@ export type {
   ColorSorterDslPort,
 } from './color-sorter/colorSorter_shapes';
 
+// 整瓶分选工艺流程图（塑料瓶回收：拆包 + 滚筒筛 + 逐级 AI 整瓶分选 + 分色仓称重）
+//
+// 与色选图**按域分家**而不是塞进色选包：符号（9 种）、介质（3 种）、工艺约束都不同，
+// 混在一个白名单里的话色选那套约束（色选机必须接气源……）会误判整瓶图。
+export {
+  default as BottleSorterDesigner,
+  BottleSorterPipe,
+  BottleSorterSymbol,
+  composePipeLabel as composeBottleSorterPipeLabel,
+  dashPatternOf as bottleSorterDashPatternOf,
+} from './bottle-sorter/BottleSorterDesigner';
+export { validateBottleSorter } from './bottle-sorter/validateBottleSorter';
+export type { BottleSorterDiagnostic, BottleSorterValidationResult } from './bottle-sorter/validateBottleSorter';
+export {
+  BOTTLE_SORTER_SYMBOL_KINDS,
+  BOTTLE_SORTER_SYMBOL_PRESETS,
+  BOTTLE_SORTER_MEDIUM_STYLES,
+  BOTTLE_SORTER_SHAPE_PATHS,
+  isBottleSorterSymbolKind,
+  isBottleSorterMedium,
+} from './bottle-sorter/bottleSorter_shapes';
+export type {
+  BottleSorterSymbolKind,
+  BottleSorterMedium,
+  BottleSorterSymbolPreset,
+  BottleSorterDslDocument,
+  BottleSorterDslUnit,
+  BottleSorterDslPipe,
+  BottleSorterDslPort,
+} from './bottle-sorter/bottleSorter_shapes';
+
+// 连线交叉处的"跳线桥"：横向线在交叉点拱起半圆（两张工艺图共用这一套纯函数）
+export {
+  computeLinkJumps,
+  applyLinkJumps,
+  applyJumpsToLink,
+  JUMP_RADIUS,
+  JUMP_ENDPOINT_INSET,
+} from './designer/linkJumps';
+export type { LinkJumps } from './designer/linkJumps';
+
 // 文本互操作：PlantUML / Mermaid 类图语法子集（导入导出）
 export { toPlantUml, fromPlantUml, arrowOf, detectUmlDialect } from './uml/uml_text';
 export type { UmlTextImportResult } from './uml/uml_text';

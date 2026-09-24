@@ -141,6 +141,13 @@ function addText(group: ICEGroup, left: number, top: number, width: number, text
 }
 
 export const COLOR_SORTER_SYMBOL_KINDS = [
+  // ---- 主料流前段：收储与清理 / 砻谷与碾米 / 抛光（进色选之前的这几道工序）----
+  'preCleaner',
+  'destoner',
+  'husker',
+  'paddySeparator',
+  'riceMill',
+  'polisher',
   // ---- 主料流设备（大米线）----
   'rawBin',
   'bufferBin',
@@ -150,6 +157,10 @@ export const COLOR_SORTER_SYMBOL_KINDS = [
   'productBin',
   'rejectBin',
   'packingScale',
+  // ---- 副产物接收（石子 / 稻壳 / 米糠，下层接收那条带）----
+  'stoneBin',
+  'huskBin',
+  'branBin',
   // ---- 气源链 ----
   'airCompressor',
   'airTank',
@@ -193,6 +204,12 @@ export interface ColorSorterSymbolPreset {
 }
 
 export const COLOR_SORTER_SYMBOL_PRESETS: Record<ColorSorterSymbolKind, ColorSorterSymbolPreset> = {
+  preCleaner: { label: '初清筛', tag: 'SC', width: 88, height: 62, shape: 'device', inline: false },
+  destoner: { label: '去石机', tag: 'DS', width: 88, height: 64, shape: 'device', inline: false },
+  husker: { label: '砻谷机', tag: 'HU', width: 88, height: 72, shape: 'device', inline: false },
+  paddySeparator: { label: '谷糙分离机', tag: 'PS', width: 94, height: 72, shape: 'device', inline: false },
+  riceMill: { label: '碾米机', tag: 'RM', width: 90, height: 68, shape: 'device', inline: false },
+  polisher: { label: '抛光机', tag: 'PL', width: 90, height: 68, shape: 'device', inline: false },
   rawBin: { label: '原料仓', tag: 'B', width: 86, height: 80, shape: 'tank', inline: false },
   bufferBin: { label: '缓冲斗', tag: 'B', width: 86, height: 68, shape: 'tank', inline: false },
   productBin: { label: '成品斗', tag: 'B', width: 86, height: 68, shape: 'tank', inline: false },
@@ -201,6 +218,9 @@ export const COLOR_SORTER_SYMBOL_PRESETS: Record<ColorSorterSymbolKind, ColorSor
   vibFeeder: { label: '振动喂料器', tag: 'VF', width: 84, height: 36, shape: 'device', inline: false },
   colorSorter: { label: '色选机', tag: 'CS', width: 100, height: 96, shape: 'device', inline: false },
   packingScale: { label: '包装秤', tag: 'PK', width: 86, height: 68, shape: 'device', inline: false },
+  stoneBin: { label: '石子收集箱', tag: 'SB', width: 80, height: 56, shape: 'tank', inline: false },
+  huskBin: { label: '稻壳收集仓', tag: 'HK', width: 86, height: 68, shape: 'tank', inline: false },
+  branBin: { label: '米糠收集仓', tag: 'BR', width: 86, height: 68, shape: 'tank', inline: false },
   airCompressor: { label: '空压机', tag: 'AC', width: 92, height: 56, shape: 'device', inline: false },
   airTank: { label: '储气罐', tag: 'AT', width: 70, height: 84, shape: 'round', inline: false },
   airDryer: { label: '冷干机', tag: 'AD', width: 92, height: 56, shape: 'device', inline: false },
@@ -239,6 +259,279 @@ function binShape(width: number, height: number, hasInletTop: boolean): ICEGroup
     [width / 2, height + 6],
   ]);
   return group;
+}
+
+/**
+ * 初清筛（振动筛）：筛箱 + 倾斜筛面 + 顶部进料口，左下出轻杂、右下出净粮。
+ *
+ * 这是整条线的第一道工序 —— 先把秸秆、麻绳、泥块这类**大杂**筛掉，后面的砻谷、碾米
+ * 才不至于被堵。斜筛面是这个符号的辨识特征（与同样带料槽的 `vibFeeder` 区别就在这里）。
+ */
+export function preCleanerShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  // 筛箱
+  addRect(group, 4, 10, w - 8, h - 22);
+  // 倾斜筛面（两条平行斜线 = 筛网层）
+  addLine(group, [
+    [10, h - 18],
+    [w - 12, 16],
+  ]);
+  addLine(group, [
+    [22, h - 14],
+    [w - 6, 18],
+  ]);
+  // 顶部进料口
+  addLine(group, [
+    [w / 2 - 8, 4],
+    [w / 2 - 8, 10],
+  ]);
+  addLine(group, [
+    [w / 2 + 8, 4],
+    [w / 2 + 8, 10],
+  ]);
+  // 轻杂出口（左下）与净粮出口（右下）
+  addLine(group, [
+    [14, h - 12],
+    [14, h - 2],
+  ]);
+  addLine(group, [
+    [w - 22, h - 12],
+    [w - 22, h - 2],
+  ]);
+  return group;
+}
+
+/**
+ * 去石机：吸风罩 + 机身 + 去石台面（斜线）+ 左侧石子上升路（虚线）。
+ *
+ * 去石靠"比重差异 + 上升气流"：石子重、沉在台面下沿被送往左侧排出，粮粒轻、被气流托着
+ * 从右侧走。左侧那条**虚线**就是石子路 —— 它与实线的净粮路一起把这个符号讲清楚。
+ */
+export function destonerShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  // 吸风罩
+  addRect(group, w / 2 - 14, 2, 28, 12);
+  // 机身
+  addRect(group, 4, 14, w - 8, h - 24);
+  // 去石台面
+  addLine(group, [
+    [10, h - 14],
+    [w - 12, 20],
+  ]);
+  // 石子上升路（左侧虚线）
+  addLine(
+    group,
+    [
+      [16, h - 22],
+      [16, 26],
+    ],
+    true
+  );
+  // 净粮出口（右下）
+  addLine(group, [
+    [w - 24, h - 10],
+    [w - 24, h - 2],
+  ]);
+  return group;
+}
+
+/**
+ * 砻谷机（胶辊砻谷机）：进料斗 + 一对相向转动的胶辊 + 机壳 + 出料口。
+ *
+ * 一对圆辊是胶辊砻谷机的辨识特征：两辊转速不同，靠线速差把稻壳搓开（"砻谷"就是脱壳）。
+ * 出料是谷糙混合物，所以它下游接的是谷糙分离机。
+ */
+export function huskerShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  // 进料斗
+  addClosed(group, [
+    [w / 2 - 18, 2],
+    [w / 2 + 18, 2],
+    [w / 2 + 8, 16],
+    [w / 2 - 8, 16],
+  ]);
+  // 机壳
+  addRect(group, 4, 16, w - 8, h - 26);
+  // 一对胶辊
+  addCircle(group, w / 2 - 13, 34, 10);
+  addCircle(group, w / 2 + 13, 34, 10);
+  // 两辊的转向标记（一条竖线穿过圆心）
+  addLine(group, [
+    [w / 2 - 13, 26],
+    [w / 2 - 13, 42],
+  ]);
+  addLine(group, [
+    [w / 2 + 13, 26],
+    [w / 2 + 13, 42],
+  ]);
+  // 出料口
+  addLine(group, [
+    [w - 26, h - 10],
+    [w - 26, h - 2],
+  ]);
+  return group;
+}
+
+/**
+ * 谷糙分离机：多层倾斜筛体 + 左侧回砻口 + 右侧糙米口。
+ *
+ * 砻谷之后稻谷与糙米混在一起，靠粒度与比重差在多层筛面上分开：未脱壳的稻谷从左端
+ * 回砻谷机再砻一次，糙米从右端进碾米机。**两条出料路都在符号上** —— 这正是这个符号
+ * 比一个方框多出来的信息。
+ */
+export function paddySeparatorShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  // 筛体
+  addRect(group, 4, 6, w - 8, h - 18);
+  // 三层倾斜筛面
+  for (let i = 0; i < 3; i++) {
+    const y = 16 + i * 14;
+    addLine(group, [
+      [10, y + 10],
+      [w - 12, y],
+    ]);
+  }
+  // 回砻口（左）与糙米出口（右）
+  addLine(group, [
+    [4, h - 12],
+    [16, h - 12],
+  ]);
+  addLine(group, [
+    [w - 16, h - 12],
+    [w - 4, h - 12],
+  ]);
+  return group;
+}
+
+/**
+ * 碾米机（砂辊 / 铁辊）：机身 + 卧式米辊（圆）+ 上方米刀 + 进出料口。
+ *
+ * 卧式圆筒（米辊）是碾米机的辨识特征：糙米在辊与米刀之间被摩擦、剥掉糠层。
+ * 上方的三条短竖线就是米刀。
+ */
+export function riceMillShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const cy = h / 2;
+  const group = newGroup();
+  // 机身
+  addRect(group, 6, cy - 16, w - 12, 32);
+  // 卧式米辊
+  addCircle(group, w / 2, cy, 12);
+  addLine(group, [
+    [w / 2 - 12, cy],
+    [w / 2 + 12, cy],
+  ]);
+  // 米刀（三条短竖线）
+  for (let i = 0; i < 3; i++) {
+    addLine(group, [
+      [w / 2 - 10 + i * 10, cy - 23],
+      [w / 2 - 10 + i * 10, cy - 17],
+    ]);
+  }
+  // 进料口（左上）与出料口（右下）
+  addLine(group, [
+    [10, cy - 16],
+    [10, cy - 26],
+  ]);
+  addLine(group, [
+    [w - 10, cy + 16],
+    [w - 10, cy + 26],
+  ]);
+  return group;
+}
+
+/**
+ * 抛光机：机身 + 卧式抛光筒 + 雾化喷头（三个点）+ 进出料口。
+ *
+ * 与碾米机的区别就在那三个点上：抛光要**加水雾**（着水抛光），靠水膜把米粒表面的
+ * 糠粉与浮糠带走、提高光洁度。两个符号同为卧式圆筒，靠"有没有雾点"分开。
+ */
+export function polisherShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const cy = h / 2;
+  const group = newGroup();
+  // 机身
+  addRect(group, 6, cy - 15, w - 12, 30);
+  // 卧式抛光筒
+  addCircle(group, w / 2, cy, 11);
+  addLine(group, [
+    [w / 2 - 7, cy - 7],
+    [w / 2 + 7, cy + 7],
+  ]);
+  // 雾化喷头（三个点）
+  for (let i = 0; i < 3; i++) {
+    addCircle(group, w / 2 - 10 + i * 10, cy - 22, 2);
+  }
+  // 进料口（左上）与出料口（右下）
+  addLine(group, [
+    [10, cy - 15],
+    [10, cy - 25],
+  ]);
+  addLine(group, [
+    [w - 10, cy + 15],
+    [w - 10, cy + 25],
+  ]);
+  return group;
+}
+
+/** 仓斗**带堆积面**：仓斗 + 仓内若干条横向虚线（表示存料的高度界面）。 */
+function binWithMarks(width: number, height: number, markCount: number): ICEGroup {
+  const group = binShape(width, height, true);
+  const bodyTop = 6;
+  const bodyH = height - bodyTop - (height - bodyTop) * 0.42;
+  for (let i = 0; i < markCount; i++) {
+    const y = bodyTop + bodyH - 8 - i * 9;
+    addLine(
+      group,
+      [
+        [8, y],
+        [width - 8, y],
+      ],
+      true
+    );
+  }
+  return group;
+}
+
+/** 石子收集箱：敞口箱 + 箱内石子（三个小圆）+ 支腿。 */
+export function stoneBinShape(p: ColorSorterSymbolPreset): ICEGroup {
+  const { width: w, height: h } = p;
+  const group = newGroup();
+  // 敞口箱（上宽下窄）
+  addClosed(group, [
+    [4, 4],
+    [w - 4, 4],
+    [w - 10, h - 10],
+    [10, h - 10],
+  ]);
+  // 石子
+  addCircle(group, w / 2, h / 2, 3);
+  addCircle(group, w / 2 - 13, h / 2 + 3, 3);
+  addCircle(group, w / 2 + 13, h / 2 + 3, 3);
+  // 支腿
+  addLine(group, [
+    [18, h - 10],
+    [18, h - 2],
+  ]);
+  addLine(group, [
+    [w - 18, h - 10],
+    [w - 18, h - 2],
+  ]);
+  return group;
+}
+
+/** 稻壳收集仓：仓斗 + 仓内两条堆积面（稻壳蓬松、堆得浅）。 */
+export function huskBinShape(p: ColorSorterSymbolPreset): ICEGroup {
+  return binWithMarks(p.width, p.height, 2);
+}
+
+/** 米糠收集仓：仓斗 + 仓内三条堆积面（糠粉细、界面更密）。 */
+export function branBinShape(p: ColorSorterSymbolPreset): ICEGroup {
+  return binWithMarks(p.width, p.height, 3);
 }
 
 export function rawBinShape(p: ColorSorterSymbolPreset): ICEGroup {
@@ -576,6 +869,12 @@ export function isColorSorterMedium(m: string): m is ColorSorterMedium {
  * `ColorSorterDesigner.createSymbolPath` 都走这张表，避免两处各写一个 switch 后走岔。
  */
 export const COLOR_SORTER_SHAPE_PATHS: Record<ColorSorterSymbolKind, (preset: ColorSorterSymbolPreset) => ICEGroup> = {
+  preCleaner: preCleanerShape,
+  destoner: destonerShape,
+  husker: huskerShape,
+  paddySeparator: paddySeparatorShape,
+  riceMill: riceMillShape,
+  polisher: polisherShape,
   rawBin: rawBinShape,
   bufferBin: bufferBinShape,
   productBin: productBinShape,
@@ -584,6 +883,9 @@ export const COLOR_SORTER_SHAPE_PATHS: Record<ColorSorterSymbolKind, (preset: Co
   vibFeeder: vibFeederShape,
   colorSorter: colorSorterShape,
   packingScale: packingScaleShape,
+  stoneBin: stoneBinShape,
+  huskBin: huskBinShape,
+  branBin: branBinShape,
   airCompressor: airCompressorShape,
   airTank: airTankShape,
   airDryer: airDryerShape,
@@ -602,7 +904,7 @@ export type ColorSorterDslPort = 'T' | 'R' | 'B' | 'L' | 'C';
 export interface ColorSorterDslUnit {
   /** 必填且在一份文档里唯一（管线的 `sourceId` / `targetId` 引用它） */
   id: string;
-  /** 符号种类，取值见 `COLOR_SORTER_SYMBOL_KINDS`（18 种） */
+  /** 符号种类，取值见 `COLOR_SORTER_SYMBOL_KINDS`（27 种） */
   kind: string;
   /** 中文名（画在符号下方） */
   name?: string;

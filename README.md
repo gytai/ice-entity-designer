@@ -616,8 +616,10 @@ const svg = secondary.toSvg({ background: '#ffffff' });
 
 #### 5.11 大米色选工艺图（`ColorSorterDesigner`）
 
-色选车间与污水厂是两套完全不同的设备谱系：**主米流**（来米 → 原料仓 → 提升机 → 振动喂料器 → 色选机 →
-成品斗 → 包装秤 → 出库）、**副品复选**、**压缩空气链**、**除尘链**。18 种符号按粮食行业通行画法自绘
+色选车间与污水厂是两套完全不同的设备谱系：**主米流**（来米 → 原料仓 → 初清筛 → 去石机 → 砻谷机 →
+谷糙分离机 → 碾米机 → 抛光机 → 缓冲斗 → 振动喂料器 → 色选机 → 成品斗 → 包装秤 → 出库）、
+**副品复选**、**副产物接收**（石子 / 稻壳 / 米糠）、**压缩空气链**、**除尘链**。
+27 种符号按粮食行业通行画法自绘
 （**不引用任何强制性国标图例**），管线按介质着色与定线型 —— 米线、气线、除尘线、信号线一眼分得开。
 
 ```js
@@ -649,10 +651,10 @@ validateColorSorter(doc);   // 永不抛异常，只给结构化诊断
 
 | 能力 | 说明 |
 |---|---|
-| 符号库 | 18 种：仓斗类 4 / 提升机与振动喂料器 2 / 色选机主机 1 / 包装秤 1 / 气源四件套 4 / 除尘 2 / 电控柜 1 / 边界 3 |
+| 符号库 | 27 种：前处理与碾米 6（初清筛 / 去石机 / 砻谷机 / 谷糙分离机 / 碾米机 / 抛光机）/ 仓斗类 4 / 提升机与振动喂料器 2 / 色选机主机 1 / 包装秤 1 / 副产物接收 3（石子 / 稻壳 / 米糠）/ 气源四件套 4 / 除尘 2 / 电控柜 1 / 边界 3 |
 | 介质 | 7 种：大米主流 / 副品 / 复选回料（实线）、压缩空气 / 含尘气流（虚线）、仪表信号 / 动力回路（点划线） |
 | 工艺校验 | `validateColorSorter(doc)`：色选机必须接压缩空气、成品必须有出路、副品必须接 `rejectOut` 或走 `recycle` 复选回料、振动喂料器必须在色选机**上游** |
-| 画法路由 | `ColorSorterDesigner.createSymbolPath(kind)` 把 18 个 kind 路由到对应画法函数；未支持的 kind 抛错 |
+| 画法路由 | `ColorSorterDesigner.createSymbolPath(kind)` 把 27 个 kind 路由到对应画法函数；未支持的 kind 抛错 |
 | DSL 装载 | `mount(doc)` 按一份 `ColorSorterDslDocument` 建图（构造期传 doc 也会自动装载） |
 
 最小示例（12 单元 / 18 管线，新符号的视觉验证）：`examples/color-sorter-demo.ts`。
@@ -863,8 +865,8 @@ src/
 │   ├── water_shapes.ts            # 21 种符号（GB/T 50106 图例；水线蓝 / 污泥线黄）
 │   └── WaterProcessDesigner.ts    # 应用层：介质 + 管径、工艺校验、流径分析（关阀断流）
 ├── color-sorter/                  # 大米色选工艺图（色选主线 + 副品复选 + 气源 + 除尘）
-│   ├── colorSorter_shapes.ts      # 18 种符号画法函数 + 介质表 + DSL 文档类型（粮食行业通行画法）
-│   ├── ColorSorterDesigner.ts     # 应用层：符号/管线、介质着色与线型、DSL 装载（createSymbolPath 路由 18 画法）
+│   ├── colorSorter_shapes.ts      # 27 种符号画法函数 + 介质表 + DSL 文档类型（粮食行业通行画法）
+│   ├── ColorSorterDesigner.ts     # 应用层：符号/管线、介质着色与线型、DSL 装载（createSymbolPath 路由 27 画法）
 │   └── validateColorSorter.ts     # 工艺校验：永不抛 + 四条色选约束（气源 / 成品出路 / 副品出路 / 喂料器上游）
 ├── er-component/
 │   ├── Entity.ts                  # 实体：表头 + 字段列表 + 约束标记 + TypeORM 序列化
